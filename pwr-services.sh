@@ -161,8 +161,8 @@ Wants=network-online.target
 
 [Service]
 User=$USER
-WorkingDirectory=$HOME
-ExecStart=java -jar /root/pwr-services/validator.jar password $SERVER_IP --compression-level 0
+WorkingDirectory=/root/pwr-services
+ExecStart=java -jar /root/pwr-services/validator.jar /root/pwr-services/password $SERVER_IP --compression-level 0
 Restart=always
 RestartSec=5
 LimitNOFILE=65535
