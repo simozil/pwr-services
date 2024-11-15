@@ -89,7 +89,7 @@ while true; do
             fi
 
             log "info" "Upgrade complete. Showing logs (press Enter to return to menu)..."
-            sudo journalctl -u pwr --since "5 minutes ago" -n 20  # Menampilkan log terbaru
+            sudo journalctl -u pwr -f # Menampilkan log terbaru
             read -p ""
             ;;
         3)
