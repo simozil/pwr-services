@@ -17,7 +17,7 @@ log() {
 
 # Set working directory to /root/pwr-services
 mkdir -p /root/pwr-services
-cd /root/pwr-services
+cd /root/pwr-services || exit
 
 log "info" "=== PWR Node Management ==="
 log "info" "1. Install New Node"
@@ -31,79 +31,88 @@ exists() {
 }
 
 validate_ip() {
-    if [[ $1 =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
-        return 0
-    else
-        return 1
-    fi
+  if [[ $1 =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
+    return 0
+  else
+    return 1
+  fi
 }
 
 while true; do
-    read -p "Choose an option: " choice
-    case $choice in
-        1)
-            # Code for installation (seperti sebelumnya)
-            ;;
-        2)
-            log "info" "Starting upgrade process..."
+  read -p "Choose an option: " choice
+  log "info" "You selected: $choice"
 
-            log "info" "Stopping PWR service..."
-            if sudo systemctl stop pwr.service; then
-                log "success" "PWR service stopped successfully."
-            else
-                log "error" "Failed to stop PWR service."
-                exit 1
-            fi
+  # Validate input
+  if ! [[ "$choice" =~ ^[0-9]+$ ]]; then
+    log "error" "Please enter a valid number."
+    continue
+  fi
 
-            log "info" "Cleaning up old validator files..."
-            sudo rm -rf /root/pwr-services/validator.jar /root/pwr-services/config.json
-            log "success" "Old files removed."
+  case $choice in
+    1)
+      log "info" "You chose Install New Node."
+      # Tambahkan kode instalasi di sini
+      ;;
+    2)
+      log "info" "Starting upgrade process..."
 
-            log "info" "Downloading latest version of PWR Validator..."
-            latest_version=$(curl -s https://api.github.com/repos/pwrlabs/PWR-Validator/releases/latest | grep -Po '"tag_name": "\K.*?(?=")')
-            if [ -z "$latest_version" ]; then
-                log "error" "Failed to get latest version"
-                exit 1
-            fi
+      log "info" "Stopping PWR service..."
+      if sudo systemctl stop pwr.service; then
+        log "success" "PWR service stopped successfully."
+      else
+        log "error" "Failed to stop PWR service."
+        exit 1
+      fi
 
-            if wget "https://github.com/pwrlabs/PWR-Validator/releases/download/$latest_version/validator.jar"; then
-                log "success" "Latest validator.jar downloaded."
-            else
-                log "error" "Failed to download validator.jar"
-                exit 1
-            fi
+      log "info" "Cleaning up old validator files..."
+      sudo rm -rf /root/pwr-services/validator.jar /root/pwr-services/config.json
+      log "success" "Old files removed."
 
-            if wget "https://github.com/pwrlabs/PWR-Validator/raw/refs/heads/main/config.json"; then
-                log "success" "Latest config.json downloaded."
-            else
-                log "error" "Failed to download config.json"
-                exit 1
-            fi
+      log "info" "Downloading latest version of PWR Validator..."
+      latest_version=$(curl -s https://api.github.com/repos/pwrlabs/PWR-Validator/releases/latest | grep -Po '"tag_name": "\K.*?(?=")')
+      if [ -z "$latest_version" ]; then
+        log "error" "Failed to get latest version"
+        exit 1
+      fi
 
-            log "info" "Starting PWR service with updated files..."
-            if sudo systemctl start pwr.service; then
-                log "success" "PWR service started successfully."
-            else
-                log "error" "Failed to start PWR service."
-                exit 1
-            fi
+      if wget "https://github.com/pwrlabs/PWR-Validator/releases/download/$latest_version/validator.jar"; then
+        log "success" "Latest validator.jar downloaded."
+      else
+        log "error" "Failed to download validator.jar"
+        exit 1
+      fi
 
-            log "info" "Upgrade complete. Showing logs (press Enter to return to menu)..."
-            sudo journalctl -u pwr -f # Menampilkan log terbaru
-            read -p ""
-            ;;
-        3)
-            log "info" "=== System Status Check ==="
-            # Status check steps as before
-            ;;
-        0)
-            log "info" "Exiting..."
-            exit 0
-            ;;
-        *)
-            log "error" "Invalid option. Please try again."
-            sleep 2
-            clear
-            ;;
-    esac
+      if wget "https://github.com/pwrlabs/PWR-Validator/raw/refs/heads/main/config.json"; then
+        log "success" "Latest config.json downloaded."
+      else
+        log "error" "Failed to download config.json"
+        exit 1
+      fi
+
+      log "info" "Starting PWR service with updated files..."
+      if sudo systemctl start pwr.service; then
+        log "success" "PWR service started successfully."
+      else
+        log "error" "Failed to start PWR service."
+        exit 1
+      fi
+
+      log "info" "Upgrade complete. Showing logs (press Enter to return to menu)..."
+      sudo journalctl -u pwr -f # Menampilkan log terbaru
+      read -p ""
+      ;;
+    3)
+      log "info" "=== System Status Check ==="
+      # Tambahkan langkah pengecekan status di sini
+      ;;
+    0)
+      log "info" "Exiting..."
+      exit 0
+      ;;
+    *)
+      log "error" "Invalid option. Please try again."
+      sleep 2
+      clear
+      ;;
+  esac
 done
